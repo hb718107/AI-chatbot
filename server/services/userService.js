@@ -21,22 +21,24 @@ export const addUser = (userData) => {
   });
 };
 
-export const updateUserByEmail = (email, updateFields) => {
+export const updateUserByEmail = (identifier, updateFields) => {
   return new Promise((resolve, reject) => {
     const fields = [];
     const values = [];
+    const allowedKeys = ['name', 'phone', 'city', 'status', 'email'];
+
     Object.keys(updateFields).forEach((key) => {
-      if (updateFields[key] !== undefined && key !== 'email') {
+      if (allowedKeys.includes(key) && key !== 'emailOrName' && updateFields[key] !== undefined && updateFields[key] !== null) {
         fields.push(`${key} = ?`);
         values.push(updateFields[key]);
       }
     });
 
-    if (fields.length === 0) return resolve(null);
-    values.push(email);
+    if (fields.length === 0) return resolve({ changes: 0 });
+
+    values.push(identifier, `%${identifier}%`);
 
     const query = `UPDATE users SET ${fields.join(', ')} WHERE email = ? OR LOWER(name) LIKE LOWER(?)`;
-    values.push(`%${email}%`);
 
     db.run(query, values, function (err) {
       if (err) reject(err);
@@ -60,21 +62,25 @@ export const queryUsersDb = (params) => {
     let sql = `SELECT * FROM users WHERE 1=1`;
     const values = [];
 
-    if (params.initial) {
+    if (params.initial && params.initial.trim().length > 0) {
       sql += ` AND (LOWER(name) LIKE LOWER(?) OR LOWER(email) LIKE LOWER(?))`;
-      values.push(`${params.initial}%`, `${params.initial}%`);
+      values.push(`${params.initial.trim()}%`, `${params.initial.trim()}%`);
     }
-    if (params.status) {
+    if (params.status && params.status.trim().length > 0) {
       sql += ` AND LOWER(status) = LOWER(?)`;
-      values.push(params.status);
+      values.push(params.status.trim());
     }
-    if (params.city) {
+    if (params.city && params.city.trim().length > 0) {
       sql += ` AND LOWER(city) LIKE LOWER(?)`;
-      values.push(`%${params.city}%`);
+      values.push(`%${params.city.trim()}%`);
     }
-    if (params.queryText) {
-      sql += ` AND (LOWER(name) LIKE LOWER(?) OR LOWER(email) LIKE LOWER(?))`;
-      values.push(`%${params.queryText}%`, `%${params.queryText}%`);
+    if (params.queryText && params.queryText.trim().length > 0) {
+      const q = params.queryText.trim();
+      const ignoreWords = ['wh', 'what', 'who', 'where', 'how', 'show', 'get', 'tell', 'me', 'the', 'user', 'users', 'is', 'are'];
+      if (!ignoreWords.includes(q.toLowerCase())) {
+        sql += ` AND (LOWER(name) LIKE LOWER(?) OR LOWER(email) LIKE LOWER(?))`;
+        values.push(`%${q}%`, `%${q}%`);
+      }
     }
 
     db.all(sql, values, (err, rows) => {

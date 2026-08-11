@@ -372,6 +372,38 @@ body {
   border-radius: 6px;
 }
 
+.btn-mic {
+  background: var(--bg-main);
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-mic:hover {
+  color: #fff;
+  border-color: var(--accent-purple);
+}
+
+.btn-mic.recording {
+  background: #EF4444;
+  border-color: #EF4444;
+  color: #fff;
+  animation: micPulse 1.2s infinite ease-in-out;
+}
+
+@keyframes micPulse {
+  0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.6); }
+  70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+}
+
 .floating-chat-toggle {
   position: fixed;
   bottom: 28px;
@@ -407,6 +439,18 @@ body {
   border-radius: 20px;
   overflow: hidden;
   animation: slideUp 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.unread-badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 14px;
+  height: 14px;
+  background: #10B981;
+  border: 2px solid var(--bg-main);
+  border-radius: 50%;
+  box-shadow: 0 0 8px #10B981;
 }
 
 @keyframes slideUp {

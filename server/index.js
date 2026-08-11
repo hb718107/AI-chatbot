@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import chatRoutes from './routes/chatRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import authRoutes from './routes/authRoutes.js';
+import voiceRoutes from './routes/voiceRoutes.js';
 
 dotenv.config();
 
@@ -14,6 +15,7 @@ app.use(cors());
 app.use(express.json());
 
 app.use('/api/auth', authRoutes);
+app.use('/api/voice/transcribe', voiceRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/users', userRoutes);
 

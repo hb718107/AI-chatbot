@@ -29,6 +29,7 @@ export default function UserTable({ users, onDelete, onSearch, searchQuery, onAd
               <th>Status</th>
               <th>Email</th>
               <th>Phone</th>
+              <th>City</th>
               <th>Created</th>
               <th>Actions</th>
             </tr>
@@ -51,6 +52,7 @@ export default function UserTable({ users, onDelete, onSearch, searchQuery, onAd
                   </td>
                   <td>{u.email}</td>
                   <td>{u.phone || 'N/A'}</td>
+                  <td>{u.city || 'N/A'}</td>
                   <td>{u.created || '12/24/24'}</td>
                   <td>
                     <div style={{ display: 'flex', gap: '8px' }}>

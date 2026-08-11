@@ -60,15 +60,13 @@ const tools = [
     type: 'function',
     function: {
       name: 'queryUsers',
-      description: 'Queries or counts user records based on criteria such as initial, city, status, or search term.',
+      description: 'Search or lookup user records by name, email, or keyword.',
       parameters: {
         type: 'object',
         properties: {
-          initial: { type: 'string', description: 'Starting letter of user name or email, e.g. H' },
-          status: { type: 'string', description: 'User status, e.g. Active, Offline, Suspended' },
-          city: { type: 'string', description: 'User city location' },
-          queryText: { type: 'string', description: 'General search keyword' }
-        }
+          queryText: { type: 'string', description: 'Name or search term to lookup (e.g. Aslam, Rohaan)' }
+        },
+        required: ['queryText']
       }
     }
   }
@@ -109,7 +107,12 @@ export const parseUserCommand = async (userMessage) => {
         }
       };
     }
-    return { responseText: "I can help you add, update, or remove users. What would you like to do?" };
+    return {
+      toolCall: {
+        name: 'queryUsers',
+        args: { queryText: userMessage }
+      }
+    };
   }
 
   try {
@@ -122,7 +125,15 @@ export const parseUserCommand = async (userMessage) => {
     const messages = [
       {
         role: 'system',
-        content: 'You are an intelligent administrative assistant chatbot for WPBrigade AI Portal. Use conversation history as context memory. Help admins manage user records by invoking tools or answering questions directly.'
+        content: `You are WPBrigade AI Assistant, an intelligent, helpful administrative assistant for the WPBrigade AI Portal.
+Always respond warmly, clearly, and professionally.
+When the user sends greetings or casual chat (e.g., "Hi", "How are you?"), greet them warmly and offer helpful assistance with user management. Do NOT address the user as "boss". Keep responses concise and focused.
+
+Tool usage instructions:
+- Call 'queryUsers' when asked a question about a user (e.g. "what is Aslam's phone?", "who is Rohaan").
+- Call 'updateUser' when ordered to change a property (e.g. "update Rohaan's city to Islamabad").
+- Call 'createUser' when ordered to add a user.
+- Call 'deleteUser' when ordered to remove a user.`
       },
       ...historyMessages,
       { role: 'user', content: userMessage }
@@ -154,6 +165,32 @@ export const parseUserCommand = async (userMessage) => {
 
     return { responseText: choice?.message?.content || "I'm ready to manage your users." };
   } catch (err) {
+    if (err.message && err.message.includes('failed_generation')) {
+      const match = err.message.match(/<function=(\w+)\s+({[^<]+})/i);
+      if (match) {
+        try {
+          const fnName = match[1];
+          const rawJson = match[2].trim();
+          const parsedArgs = JSON.parse(rawJson);
+          return {
+            toolCall: {
+              name: fnName,
+              args: parsedArgs
+            }
+          };
+        } catch (e) {
+          const qMatch = err.message.match(/queryText["\s:]+["']?([^"\\}\]]+)["']?/i);
+          if (qMatch && qMatch[1]) {
+            return {
+              toolCall: {
+                name: 'queryUsers',
+                args: { queryText: qMatch[1].trim() }
+              }
+            };
+          }
+        }
+      }
+    }
     const msg = userMessage.toLowerCase();
     let toolCall = null;
     if (msg.includes('add') || msg.includes('create')) {
