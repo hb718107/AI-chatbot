@@ -10,7 +10,7 @@ const tools = [
     type: 'function',
     function: {
       name: 'createUser',
-      description: 'Creates a new user record in the database.',
+      description: 'Creates or registers a new user record. Synonyms: add, create, register, insert, append, enroll, onboard, new user.',
       parameters: {
         type: 'object',
         properties: {
@@ -28,7 +28,7 @@ const tools = [
     type: 'function',
     function: {
       name: 'updateUser',
-      description: 'Updates an existing user record identified by email or name.',
+      description: 'Updates or modifies an existing user record. Synonyms: update, edit, modify, change, set, alter, revise, adjust, assign.',
       parameters: {
         type: 'object',
         properties: {
@@ -46,7 +46,7 @@ const tools = [
     type: 'function',
     function: {
       name: 'deleteUser',
-      description: 'Deletes a user record by email or name.',
+      description: 'Deletes or removes a user record. Synonyms: delete, remove, purge, erase, drop, discard, terminate, revoke, ban, kick, clear.',
       parameters: {
         type: 'object',
         properties: {
@@ -60,11 +60,11 @@ const tools = [
     type: 'function',
     function: {
       name: 'queryUsers',
-      description: 'Search or lookup user records by name, email, or keyword.',
+      description: 'Searches, queries, or looks up user records. Synonyms: find, search, look for, lookup, fetch, get, display, check, view, inspect, count, list, who is, where is, what is.',
       parameters: {
         type: 'object',
         properties: {
-          queryText: { type: 'string', description: 'Name or search term to lookup (e.g. Aslam, Rohaan)' }
+          queryText: { type: 'string', description: 'Name or search term to lookup' }
         },
         required: ['queryText']
       }
@@ -127,13 +127,14 @@ export const parseUserCommand = async (userMessage) => {
         role: 'system',
         content: `You are WPBrigade AI Assistant, an intelligent, helpful administrative assistant for the WPBrigade AI Portal.
 Always respond warmly, clearly, and professionally.
-When the user sends greetings or casual chat (e.g., "Hi", "How are you?"), greet them warmly and offer helpful assistance with user management. Do NOT address the user as "boss". Keep responses concise and focused.
 
-Tool usage instructions:
-- Call 'queryUsers' when asked a question about a user (e.g. "what is Aslam's phone?", "who is Rohaan").
-- Call 'updateUser' when ordered to change a property (e.g. "update Rohaan's city to Islamabad").
-- Call 'createUser' when ordered to add a user.
-- Call 'deleteUser' when ordered to remove a user.`
+Understand synonyms and natural language phrasing for all CRUD actions:
+- READ / QUERY Intent (Synonyms: "find", "search", "look for", "lookup", "fetch", "get", "display", "check", "who is", "where is", "what is"): Call 'queryUsers' with the search term.
+- CREATE Intent (Synonyms: "add", "create", "register", "insert", "append", "enroll", "onboard"): Call 'createUser'.
+- UPDATE Intent (Synonyms: "update", "edit", "modify", "change", "set", "alter", "revise", "adjust"): Call 'updateUser'.
+- DELETE Intent (Synonyms: "delete", "remove", "purge", "erase", "drop", "discard", "terminate", "revoke"): Call 'deleteUser'.
+
+Do NOT address the user as "boss". Keep responses concise and focused.`
       },
       ...historyMessages,
       { role: 'user', content: userMessage }
@@ -143,7 +144,8 @@ Tool usage instructions:
       messages,
       model: 'llama-3.3-70b-versatile',
       tools,
-      tool_choice: 'auto'
+      tool_choice: 'auto',
+      temperature: 0.0
     });
 
     const choice = chatCompletion.choices[0];
@@ -163,10 +165,32 @@ Tool usage instructions:
       };
     }
 
-    return { responseText: choice?.message?.content || "I'm ready to manage your users." };
+    const contentText = choice?.message?.content || "";
+
+    // Parse raw function tag string generated in message content
+    if (contentText.includes('<function')) {
+      const match = contentText.match(/<function[:=\$](\w+)[\s>]+({[^<]+})/i);
+      if (match) {
+        try {
+          const fnName = match[1];
+          const rawJson = match[2].trim();
+          const parsedArgs = JSON.parse(rawJson);
+          return {
+            toolCall: {
+              name: fnName,
+              args: parsedArgs
+            }
+          };
+        } catch (e) {
+          // ignore parsing error, fallback below
+        }
+      }
+    }
+
+    return { responseText: contentText || "I'm sorry, I couldn't process that request." };
   } catch (err) {
     if (err.message && err.message.includes('failed_generation')) {
-      const match = err.message.match(/<function=(\w+)\s+({[^<]+})/i);
+      const match = err.message.match(/<function[:=\$](\w+)[\s>]+({[^<]+})/i);
       if (match) {
         try {
           const fnName = match[1];

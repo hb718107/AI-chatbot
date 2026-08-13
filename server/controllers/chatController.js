@@ -72,8 +72,15 @@ export const handleChatMessage = async (req, res) => {
     await saveChatMessage('ai', responseText);
     const updatedUsers = await getAllUsers();
     res.json({ responseText, actionLog, users: updatedUsers });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+  } catch (error) {
+    console.error('Error handling chat message:', error);
+    const friendlyError = "I'm sorry, I couldn't complete that action. Please check the command details or try asking differently.";
+    await saveChatMessage('ai', friendlyError);
+    const users = await getAllUsers();
+    res.json({
+      responseText: friendlyError,
+      users
+    });
   }
 };
 
