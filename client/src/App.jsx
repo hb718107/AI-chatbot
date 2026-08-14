@@ -90,6 +90,19 @@ export default function App() {
     u.email?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const handleClearAllHistory = async () => {
+    try {
+      const res = await fetch('http://localhost:5000/api/chat/history', { method: 'DELETE' });
+      if (res.ok) {
+        setChatHistory([]);
+        setMessages([]);
+        setToast({ message: 'Conversation history cleared successfully!', type: 'success' });
+      }
+    } catch (err) {
+      console.error('Failed to clear chat history:', err);
+    }
+  };
+
   const handleLogout = () => {
     localStorage.removeItem('wpbrigade_saved_token');
     localStorage.removeItem('wpbrigade_saved_user');
@@ -134,20 +147,12 @@ export default function App() {
         </div>
         <ul className="sidebar-menu">
           <li
-            className={`sidebar-item ${activeTab === 'dashboard' ? 'active' : ''}`}
-            onClick={() => setActiveTab('dashboard')}
-            title="Dashboard"
-          >
-            <LayoutDashboard size={18} />
-            <span className="sidebar-item-text">Dashboard</span>
-          </li>
-          <li
             className={`sidebar-item ${activeTab === 'users' ? 'active' : ''}`}
             onClick={() => setActiveTab('users')}
-            title="User Management"
+            title="User Database"
           >
             <Users size={18} />
-            <span className="sidebar-item-text">User Management</span>
+            <span className="sidebar-item-text">User Database</span>
           </li>
           <li
             className={`sidebar-item ${activeTab === 'history' ? 'active' : ''}`}
@@ -156,14 +161,6 @@ export default function App() {
           >
             <MessageSquare size={18} />
             <span className="sidebar-item-text">AI Chat History</span>
-          </li>
-          <li
-            className={`sidebar-item ${activeTab === 'settings' ? 'active' : ''}`}
-            onClick={() => setActiveTab('settings')}
-            title="Settings"
-          >
-            <Settings size={18} />
-            <span className="sidebar-item-text">Settings</span>
           </li>
         </ul>
       </div>
@@ -195,7 +192,7 @@ export default function App() {
 
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
           {activeTab === 'history' ? (
-            <ChatHistoryView history={chatHistory} />
+            <ChatHistoryView history={chatHistory} onClearHistory={handleClearAllHistory} />
           ) : (
             <UserTable
               users={filteredUsers}
@@ -215,7 +212,6 @@ export default function App() {
         onClose={() => setToast({ message: '', type: 'success' })}
       />
 
-      {/* Floating Messenger Icon Button */}
       <button
         className="floating-chat-toggle"
         onClick={() => setIsChatOpen(!isChatOpen)}
@@ -225,7 +221,6 @@ export default function App() {
         <div className="unread-badge" />
       </button>
 
-      {/* Chat Popover Modal */}
       {isChatOpen && (
         <div className="chat-widget-modal">
           <ChatPanel

@@ -1,14 +1,38 @@
 import React from 'react';
-import { MessageSquare, Clock, User, Bot } from 'lucide-react';
+import { MessageSquare, Clock, User, Bot, Trash2 } from 'lucide-react';
 
-export default function ChatHistoryView({ history }) {
+export default function ChatHistoryView({ history, onClearHistory }) {
   return (
     <div className="user-panel" style={{ flex: 1 }}>
-      <div className="panel-header" style={{ marginBottom: '16px' }}>
+      <div className="panel-header" style={{ marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <h2 style={{ fontSize: '18px', fontWeight: 600, color: '#fff', display: 'flex', alignItems: 'center', gap: '10px' }}>
           <MessageSquare size={20} color="#7C3AED" />
           AI Conversation History & Audit Logs
         </h2>
+        {history.length > 0 && (
+          <button
+            className="btn-danger"
+            onClick={onClearHistory}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '8px 14px',
+              background: 'rgba(239, 68, 68, 0.15)',
+              border: '1px solid rgba(239, 68, 68, 0.4)',
+              color: '#EF4444',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              fontWeight: 600,
+              fontSize: '13px',
+              transition: 'all 0.2s ease'
+            }}
+            title="Delete all conversation history"
+          >
+            <Trash2 size={15} />
+            Clear All History
+          </button>
+        )}
       </div>
 
       <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '12px', paddingRight: '8px' }}>

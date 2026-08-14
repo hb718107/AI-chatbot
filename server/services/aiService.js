@@ -167,7 +167,6 @@ Do NOT address the user as "boss". Keep responses concise and focused.`
 
     const contentText = choice?.message?.content || "";
 
-    // Parse raw function tag string generated in message content
     if (contentText.includes('<function')) {
       const match = contentText.match(/<function[:=\$](\w+)[\s>]+({[^<]+})/i);
       if (match) {
@@ -182,7 +181,6 @@ Do NOT address the user as "boss". Keep responses concise and focused.`
             }
           };
         } catch (e) {
-          // ignore parsing error, fallback below
         }
       }
     }

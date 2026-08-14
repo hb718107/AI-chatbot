@@ -5,6 +5,7 @@ export default function ChatPanel({ messages, onSendMessage, onClear, onClose, i
   const [input, setInput] = useState('');
   const [isRecording, setIsRecording] = useState(false);
   const [transcribing, setTranscribing] = useState(false);
+  const [autoExecute, setAutoExecute] = useState(true);
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
   const messagesEndRef = useRef(null);
@@ -53,7 +54,13 @@ export default function ChatPanel({ messages, onSendMessage, onClear, onClose, i
           try {
             const data = JSON.parse(text);
             if (data.text) {
-              setInput(data.text);
+              const transcribedText = data.text.trim();
+              if (autoExecute && transcribedText) {
+                onSendMessage(transcribedText);
+                setInput('');
+              } else {
+                setInput(transcribedText);
+              }
             } else if (data.error) {
               console.error('Server transcription error:', data.error);
             }
@@ -85,15 +92,27 @@ export default function ChatPanel({ messages, onSendMessage, onClear, onClose, i
     <div className="chat-panel" style={{ height: '100%' }}>
       <div className="chat-header">
         <div className="chat-title-group">
-          <div className="status-dot" />
-          <span style={{ fontWeight: 600 }}>WPBrigade Assistant</span>
+          <div className="chat-avatar">AI</div>
+          <div>
+            <h3>WPBrigade Assistant</h3>
+            <span className="chat-status-text">
+              {transcribing ? 'Transcribing Voice...' : isRecording ? 'Listening...' : 'Online'}
+            </span>
+          </div>
         </div>
-        <div style={{ display: 'flex', gap: '6px' }}>
-          <button className="btn-icon" onClick={onClear} title="New Chat">
+        <div className="chat-actions">
+          <button
+            className={`btn-auto-toggle ${autoExecute ? 'active' : ''}`}
+            onClick={() => setAutoExecute(!autoExecute)}
+            title={autoExecute ? "Hands-Free Auto-Execute: ON" : "Hands-Free Auto-Execute: OFF (Transcribe Only)"}
+          >
+            ⚡ {autoExecute ? 'Hands-Free: ON' : 'Transcribe Only'}
+          </button>
+          <button className="btn-icon" onClick={onClear} title="Clear Chat History">
             <RefreshCw size={16} />
           </button>
           {onClose && (
-            <button className="btn-icon" onClick={onClose} title="Close Chat">
+            <button className="btn-icon" onClick={onClose} title="Close Assistant">
               <X size={16} />
             </button>
           )}

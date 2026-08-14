@@ -1,5 +1,5 @@
 import { parseUserCommand } from '../services/aiService.js';
-import { getAllUsers, addUser, updateUserByEmail, deleteUserByEmail, queryUsersDb, saveChatMessage, getChatHistory } from '../services/userService.js';
+import { getAllUsers, addUser, updateUserByEmail, deleteUserByEmail, queryUsersDb, saveChatMessage, getChatHistory, clearChatHistoryDb } from '../services/userService.js';
 
 export const handleChatMessage = async (req, res) => {
   try {
@@ -36,11 +36,18 @@ export const handleChatMessage = async (req, res) => {
         if (!target) {
           responseText = `Please specify which user record you would like me to remove.`;
         } else {
-          const resDelete = await deleteUserByEmail(target);
-          if (resDelete.changes > 0) {
-            responseText = `Done! The user record matching "${target}" has been removed.`;
+          const isConfirmed = req.body.confirmed === true || message.toLowerCase().includes('yes') || message.toLowerCase().includes('confirm');
+          
+          if (!isConfirmed) {
+            responseText = `⚠️ CONFIRMATION REQUIRED: Are you sure you want to permanently delete user record matching "${target}"? Reply "yes" or "confirm" to execute.`;
+            actionLog = `pending_delete:${target}`;
           } else {
-            responseText = `I searched the database, but couldn't locate a user matching "${target}" to remove.`;
+            const resDelete = await deleteUserByEmail(target);
+            if (resDelete.changes > 0) {
+              responseText = `Done! The user record matching "${target}" has been removed.`;
+            } else {
+              responseText = `I searched the database, but couldn't locate a user matching "${target}" to remove.`;
+            }
           }
         }
       } else if (name === 'queryUsers') {
@@ -88,6 +95,15 @@ export const fetchHistory = async (req, res) => {
   try {
     const history = await getChatHistory();
     res.json(history);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+export const clearHistory = async (req, res) => {
+  try {
+    await clearChatHistoryDb();
+    res.json({ message: 'Chat history cleared successfully', history: [] });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

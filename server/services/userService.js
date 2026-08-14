@@ -43,7 +43,6 @@ export const updateUserByEmail = (identifier, updateFields) => {
       if (err) return reject(err);
       if (this.changes > 0) return resolve({ changes: this.changes });
 
-      // Fuzzy match fallback for update
       db.all(`SELECT * FROM users`, [], (errAll, allUsers) => {
         if (errAll || !allUsers || allUsers.length === 0) return resolve({ changes: 0 });
         const target = identifier.toLowerCase();
@@ -88,7 +87,6 @@ export const deleteUserByEmail = (identifier) => {
       if (err) return reject(err);
       if (this.changes > 0) return resolve({ changes: this.changes });
 
-      // Fuzzy match fallback for delete
       db.all(`SELECT * FROM users`, [], (errAll, allUsers) => {
         if (errAll || !allUsers || allUsers.length === 0) return resolve({ changes: 0 });
         const target = identifier.toLowerCase();
@@ -156,7 +154,6 @@ export const queryUsersDb = (params) => {
         return resolve(rows);
       }
 
-      // Fuzzy / Soundalike Fallback if exact SQL LIKE returns zero rows
       db.all(`SELECT * FROM users`, [], (errAll, allUsers) => {
         if (errAll || !allUsers) return resolve([]);
         const target = rawQuery.toLowerCase();
@@ -206,6 +203,15 @@ export const getChatHistory = () => {
     db.all(`SELECT * FROM chat_history ORDER BY id ASC`, [], (err, rows) => {
       if (err) reject(err);
       else resolve(rows);
+    });
+  });
+};
+
+export const clearChatHistoryDb = () => {
+  return new Promise((resolve, reject) => {
+    db.run(`DELETE FROM chat_history`, [], function (err) {
+      if (err) reject(err);
+      else resolve({ changes: this.changes });
     });
   });
 };

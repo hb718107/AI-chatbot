@@ -372,6 +372,28 @@ body {
   border-radius: 6px;
 }
 
+.btn-auto-toggle {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.btn-auto-toggle.active {
+  background: rgba(124, 58, 237, 0.2);
+  border-color: var(--accent-purple);
+  color: #A78BFA;
+  box-shadow: 0 0 10px rgba(124, 58, 237, 0.3);
+}
+
 .btn-mic {
   background: var(--bg-main);
   border: 1px solid var(--border-color);
