@@ -129,7 +129,7 @@ export const parseUserCommand = async (userMessage) => {
 Always respond warmly, clearly, and professionally.
 
 Understand synonyms and natural language phrasing for all CRUD actions:
-- READ / QUERY Intent (Synonyms: "find", "search", "look for", "lookup", "fetch", "get", "display", "check", "who is", "where is", "what is"): Call 'queryUsers' with the search term.
+- READ / QUERY Intent (Synonyms: "find", "search", "look for", "lookup", "fetch", "get", "display", "check", "who is", "where is", "what is", "list all", "show all", "how many", "count users", "total users"): Call 'queryUsers'. If the user asks for "how many users", "total users", "count", or "all users", leave queryText empty or omit it so all users are returned.
 - CREATE Intent (Synonyms: "add", "create", "register", "insert", "append", "enroll", "onboard"): Call 'createUser'.
 - UPDATE Intent (Synonyms: "update", "edit", "modify", "change", "set", "alter", "revise", "adjust"): Call 'updateUser'.
 - DELETE Intent (Synonyms: "delete", "remove", "purge", "erase", "drop", "discard", "terminate", "revoke"): Call 'deleteUser'.
@@ -142,7 +142,7 @@ Do NOT address the user as "boss". Keep responses concise and focused.`
 
     const chatCompletion = await groq.chat.completions.create({
       messages,
-      model: 'llama-3.3-70b-versatile',
+      model: process.env.GROQ_CHAT_MODEL || 'qwen/qwen3.6-27b',
       tools,
       tool_choice: 'auto',
       temperature: 0.0

@@ -125,7 +125,7 @@ export const deleteUserByEmail = (identifier) => {
 export const queryUsersDb = (params) => {
   return new Promise((resolve, reject) => {
     const rawQuery = params.queryText ? params.queryText.trim() : '';
-    const ignoreWords = ['wh', 'what', 'who', 'where', 'how', 'show', 'get', 'tell', 'me', 'the', 'user', 'users', 'is', 'are', 'look', 'for', 'find', 'search'];
+    const ignoreWords = ['all', 'total', 'count', 'every', 'everyone', 'wh', 'what', 'who', 'where', 'how', 'how many', 'show', 'get', 'tell', 'me', 'the', 'user', 'users', 'is', 'are', 'look', 'for', 'find', 'search'];
     
     let sql = `SELECT * FROM users WHERE 1=1`;
     const values = [];

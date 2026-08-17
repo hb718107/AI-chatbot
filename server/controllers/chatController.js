@@ -52,11 +52,19 @@ export const handleChatMessage = async (req, res) => {
         }
       } else if (name === 'queryUsers') {
         const matches = await queryUsersDb(args);
+        const lowerMsg = message.toLowerCase();
+        const isCountQuery = lowerMsg.includes('how many') || lowerMsg.includes('total') || lowerMsg.includes('count') || lowerMsg.includes('number of');
+
         if (matches.length === 0) {
-          responseText = `I searched the database but found no matching users for "${args.queryText || args.initial || 'your request'}".`;
+          if (isCountQuery) {
+            responseText = `There are currently 0 users registered in the database.`;
+          } else {
+            responseText = `I searched the database but found no matching users for "${args.queryText || args.initial || 'your request'}".`;
+          }
         } else {
-          const lowerMsg = message.toLowerCase();
-          if (lowerMsg.includes('phone')) {
+          if (isCountQuery) {
+            responseText = `There are currently ${matches.length} total user(s) registered in the database.`;
+          } else if (lowerMsg.includes('phone')) {
             const list = matches.map(u => `${u.name}: ${u.phone || 'No phone recorded'}`).join('; ');
             responseText = `Here is the phone information: ${list}`;
           } else if (lowerMsg.includes('email')) {
@@ -69,7 +77,7 @@ export const handleChatMessage = async (req, res) => {
             const list = matches.map(u => `${u.name}: ${u.status}`).join('; ');
             responseText = `Here is the status information: ${list}`;
           } else {
-            const list = matches.map(u => `${u.name} (Email: ${u.email}, Phone: ${u.phone || 'N/A'}, City: ${u.city || 'N/A'}, Status: ${u.status})`).join(' | ');
+            const list = matches.map(u => `${u.name} (${u.email})`).join(', ');
             responseText = `Found ${matches.length} user(s): ${list}`;
           }
         }
